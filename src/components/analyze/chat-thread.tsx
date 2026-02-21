@@ -34,14 +34,12 @@ export function ChatThread({
   }
 
   return (
-    <div className="relative bg-gray-900/80 border border-gray-800 rounded-xl overflow-hidden animate-fade-in-up delay-500">
-      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-sky-500/30 to-transparent" />
-
+    <div className="bg-card border border-border rounded-xl overflow-hidden animate-fade-in-up delay-500">
       {/* Header */}
-      <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-800">
-        <MessageCircle className="h-4 w-4 text-sky-400" />
-        <h3 className="font-semibold text-white text-sm">Co-Pilot Chat</h3>
-        <span className="text-xs text-gray-500">Ask follow-up questions</span>
+      <div className="flex items-center gap-2 px-5 py-3 border-b border-border">
+        <MessageCircle className="h-4 w-4 text-muted" />
+        <h3 className="font-semibold text-foreground text-sm">Co-Pilot Chat</h3>
+        <span className="text-xs text-muted">Ask follow-up questions</span>
       </div>
 
       {/* Messages */}
@@ -50,7 +48,7 @@ export function ChatThread({
         className="p-4 space-y-3 max-h-[400px] overflow-y-auto min-h-[120px]"
       >
         {messages.length === 0 && (
-          <p className="text-sm text-gray-500 text-center py-6">
+          <p className="text-sm text-muted text-center py-6">
             Ask a question about the analysis...
           </p>
         )}
@@ -62,12 +60,12 @@ export function ChatThread({
             <div
               className={`max-w-[80%] rounded-xl px-4 py-2.5 text-sm leading-relaxed ${
                 msg.role === "user"
-                  ? "bg-sky-600/20 text-sky-100 border border-sky-500/20"
-                  : "bg-gray-800/60 border border-gray-700/50 text-gray-200"
+                  ? "bg-foreground text-background"
+                  : "bg-stone-50 border border-border text-foreground"
               }`}
             >
               {msg.content || (
-                <span className="inline-block w-2 h-4 bg-sky-400 animate-pulse rounded-sm" />
+                <span className="inline-block w-2 h-4 bg-stone-300 animate-pulse rounded-sm" />
               )}
             </div>
           </div>
@@ -77,7 +75,7 @@ export function ChatThread({
       {/* Input */}
       <form
         onSubmit={handleSubmit}
-        className="flex items-center gap-2 px-4 py-3 border-t border-gray-800"
+        className="flex items-center gap-2 px-4 py-3 border-t border-border"
       >
         <input
           type="text"
@@ -85,13 +83,13 @@ export function ChatThread({
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask a follow-up question..."
           disabled={isStreaming}
-          className="flex-1 bg-transparent text-sm text-white placeholder:text-gray-500 focus:outline-none disabled:opacity-50"
+          className="flex-1 bg-transparent text-sm text-foreground placeholder:text-stone-400 focus:outline-none disabled:opacity-50"
         />
         {isStreaming ? (
           <button
             type="button"
             onClick={onStop}
-            className="p-2 text-gray-400 hover:text-white transition-colors cursor-pointer"
+            className="p-2 text-muted hover:text-foreground transition-colors cursor-pointer"
           >
             <Square className="h-4 w-4" />
           </button>
@@ -99,7 +97,7 @@ export function ChatThread({
           <button
             type="submit"
             disabled={!input.trim()}
-            className="p-2 text-gray-400 hover:text-sky-400 transition-colors disabled:opacity-30 cursor-pointer"
+            className="p-2 text-muted hover:text-foreground transition-colors disabled:opacity-30 cursor-pointer"
           >
             <Send className="h-4 w-4" />
           </button>

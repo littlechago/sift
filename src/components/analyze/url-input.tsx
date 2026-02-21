@@ -42,23 +42,21 @@ export function UrlInput({ onSubmit, loading, error }: UrlInputProps) {
   return (
     <form onSubmit={handleSubmit} className="w-full">
       <div className="flex gap-3">
-        <div className="flex-1">
-          <input
-            type="text"
-            value={url}
-            onChange={(e) => {
-              setUrl(e.target.value);
-              setValidationError(null);
-            }}
-            placeholder="Paste a YouTube video or article URL..."
-            disabled={loading}
-            className="w-full bg-gray-900/80 border border-gray-700/50 rounded-xl px-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/25 transition-colors disabled:opacity-50"
-          />
-        </div>
+        <input
+          type="text"
+          value={url}
+          onChange={(e) => {
+            setUrl(e.target.value);
+            setValidationError(null);
+          }}
+          placeholder="Paste a YouTube video or article URL..."
+          disabled={loading}
+          className="flex-1 bg-card border border-border rounded-xl px-4 py-3 text-foreground placeholder:text-stone-400 focus:outline-none focus:border-stone-400 focus:ring-1 focus:ring-stone-300 transition-colors disabled:opacity-50"
+        />
         <button
           type="submit"
           disabled={loading}
-          className="flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white font-medium px-6 py-3 rounded-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-sky-500/25 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none whitespace-nowrap cursor-pointer"
+          className="flex items-center gap-2 bg-foreground text-background font-medium px-6 py-3 rounded-xl transition-all duration-200 hover:opacity-80 disabled:opacity-40 whitespace-nowrap cursor-pointer"
         >
           {loading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -69,7 +67,7 @@ export function UrlInput({ onSubmit, loading, error }: UrlInputProps) {
         </button>
       </div>
       {displayError && (
-        <p className="mt-2 text-sm text-red-400">{displayError}</p>
+        <p className="mt-2 text-sm text-red-600">{displayError}</p>
       )}
     </form>
   );

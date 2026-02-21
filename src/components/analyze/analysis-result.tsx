@@ -16,27 +16,27 @@ import type { ContentAnalysis } from "@/lib/types";
 function ConfidenceMeter({ score }: { score: number }) {
   const color =
     score >= 70
-      ? "from-green-500 to-emerald-500"
+      ? "bg-emerald-500"
       : score >= 40
-        ? "from-amber-500 to-yellow-500"
-        : "from-red-500 to-rose-500";
+        ? "bg-amber-500"
+        : "bg-rose-500";
 
   const textColor =
     score >= 70
-      ? "text-green-400"
+      ? "text-emerald-600"
       : score >= 40
-        ? "text-amber-400"
-        : "text-red-400";
+        ? "text-amber-600"
+        : "text-rose-600";
 
   return (
     <div className="flex items-center gap-3">
-      <div className="flex-1 h-2.5 bg-gray-800 rounded-full overflow-hidden">
+      <div className="flex-1 h-2 bg-stone-100 rounded-full overflow-hidden">
         <div
-          className={`h-full rounded-full bg-gradient-to-r ${color} transition-all duration-1000`}
+          className={`h-full rounded-full ${color} transition-all duration-1000`}
           style={{ width: `${score}%` }}
         />
       </div>
-      <span className={`text-sm font-bold ${textColor} tabular-nums`}>
+      <span className={`text-sm font-semibold ${textColor} tabular-nums`}>
         {score}/100
       </span>
     </div>
@@ -58,12 +58,11 @@ function Card({
 }) {
   return (
     <div
-      className={`relative bg-gray-900/80 border border-gray-800 rounded-xl p-5 animate-fade-in-up ${delay} overflow-hidden ${accent ? `border-l-2 ${accent}` : ""}`}
+      className={`bg-card border border-border rounded-xl p-5 animate-fade-in-up ${delay} ${accent ? `border-l-2 ${accent}` : ""}`}
     >
-      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-sky-500/30 to-transparent" />
       <div className="flex items-center gap-2 mb-3">
-        <Icon className="h-4 w-4 text-sky-400" />
-        <h3 className="font-semibold text-white">{title}</h3>
+        <Icon className="h-4 w-4 text-muted" />
+        <h3 className="font-semibold text-foreground">{title}</h3>
       </div>
       {children}
     </div>
@@ -72,13 +71,13 @@ function Card({
 
 function SeverityBadge({ severity }: { severity: "high" | "medium" | "low" }) {
   const styles = {
-    high: "bg-rose-500/10 text-rose-400 border-rose-500/20",
-    medium: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-    low: "bg-stone-500/10 text-stone-400 border-stone-500/20",
+    high: "bg-rose-50 text-rose-600",
+    medium: "bg-amber-50 text-amber-600",
+    low: "bg-stone-100 text-stone-500",
   };
   return (
     <span
-      className={`text-xs font-medium px-2 py-0.5 rounded-full border ${styles[severity]}`}
+      className={`text-xs font-medium px-2 py-0.5 rounded-full ${styles[severity]}`}
     >
       {severity}
     </span>
@@ -92,7 +91,7 @@ export function AnalysisResult({ analysis }: { analysis: ContentAnalysis }) {
     <div className="space-y-4">
       {/* Summary */}
       <Card icon={FileText} title="Summary" delay="delay-100">
-        <p className="text-gray-300 leading-relaxed">{analysis.summary}</p>
+        <p className="text-muted leading-relaxed">{analysis.summary}</p>
       </Card>
 
       {/* Speaker Reliability */}
@@ -103,7 +102,7 @@ export function AnalysisResult({ analysis }: { analysis: ContentAnalysis }) {
         delay="delay-100"
       >
         <ConfidenceMeter score={analysis.speakerReliability.score} />
-        <p className="text-gray-300 leading-relaxed mt-3">
+        <p className="text-muted leading-relaxed mt-3">
           {analysis.speakerReliability.assessment}
         </p>
         {analysis.speakerReliability.factors.length > 0 && (
@@ -111,9 +110,9 @@ export function AnalysisResult({ analysis }: { analysis: ContentAnalysis }) {
             {analysis.speakerReliability.factors.map((f, i) => (
               <li
                 key={i}
-                className="text-sm text-gray-400 flex items-start gap-2"
+                className="text-sm text-muted flex items-start gap-2"
               >
-                <span className="text-sky-400 mt-1">&bull;</span>
+                <span className="text-stone-400 mt-1">&bull;</span>
                 {f}
               </li>
             ))}
@@ -128,17 +127,17 @@ export function AnalysisResult({ analysis }: { analysis: ContentAnalysis }) {
             {analysis.fallacies.map((f, i) => (
               <div
                 key={i}
-                className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/30"
+                className="bg-stone-50 rounded-lg p-3"
               >
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium text-white text-sm">
+                  <span className="font-medium text-foreground text-sm">
                     {f.name}
                   </span>
                   <SeverityBadge severity={f.severity} />
                 </div>
-                <p className="text-sm text-gray-300">{f.explanation}</p>
+                <p className="text-sm text-muted">{f.explanation}</p>
                 {f.quote && (
-                  <blockquote className="mt-2 text-xs text-gray-500 italic border-l-2 border-gray-700 pl-2">
+                  <blockquote className="mt-2 text-xs text-stone-400 italic border-l-2 border-stone-200 pl-2">
                     &ldquo;{f.quote}&rdquo;
                   </blockquote>
                 )}
@@ -155,12 +154,14 @@ export function AnalysisResult({ analysis }: { analysis: ContentAnalysis }) {
             {analysis.rhetoricalTricks.map((t, i) => (
               <div
                 key={i}
-                className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/30"
+                className="bg-stone-50 rounded-lg p-3"
               >
-                <span className="font-medium text-white text-sm">{t.name}</span>
-                <p className="text-sm text-gray-300 mt-1">{t.explanation}</p>
+                <span className="font-medium text-foreground text-sm">
+                  {t.name}
+                </span>
+                <p className="text-sm text-muted mt-1">{t.explanation}</p>
                 {t.quote && (
-                  <blockquote className="mt-2 text-xs text-gray-500 italic border-l-2 border-gray-700 pl-2">
+                  <blockquote className="mt-2 text-xs text-stone-400 italic border-l-2 border-stone-200 pl-2">
                     &ldquo;{t.quote}&rdquo;
                   </blockquote>
                 )}
@@ -173,7 +174,7 @@ export function AnalysisResult({ analysis }: { analysis: ContentAnalysis }) {
       {/* Credibility Score */}
       <Card icon={Shield} title="Credibility Score" delay="delay-300">
         <ConfidenceMeter score={analysis.credibilityScore} />
-        <p className="text-gray-300 leading-relaxed mt-3">
+        <p className="text-muted leading-relaxed mt-3">
           {analysis.credibilityExplanation}
         </p>
       </Card>
@@ -185,9 +186,9 @@ export function AnalysisResult({ analysis }: { analysis: ContentAnalysis }) {
             {analysis.keyTakeaways.map((t, i) => (
               <li
                 key={i}
-                className="text-sm text-gray-300 flex items-start gap-2"
+                className="text-sm text-muted flex items-start gap-2"
               >
-                <span className="text-sky-400 mt-0.5">&bull;</span>
+                <span className="text-stone-400 mt-0.5">&bull;</span>
                 {t}
               </li>
             ))}
@@ -204,13 +205,11 @@ export function AnalysisResult({ analysis }: { analysis: ContentAnalysis }) {
         >
           <div className="space-y-3">
             {analysis.howToAvoid.map((item, i) => (
-              <div key={i} className="flex items-start gap-2">
-                <div className="flex-1">
-                  <p className="text-sm text-gray-400">{item.mistake}</p>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <ArrowRight className="h-3 w-3 text-sky-400 flex-shrink-0" />
-                    <p className="text-sm text-gray-200">{item.advice}</p>
-                  </div>
+              <div key={i}>
+                <p className="text-sm text-muted">{item.mistake}</p>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <ArrowRight className="h-3 w-3 text-stone-400 flex-shrink-0" />
+                  <p className="text-sm text-foreground">{item.advice}</p>
                 </div>
               </div>
             ))}
@@ -222,7 +221,7 @@ export function AnalysisResult({ analysis }: { analysis: ContentAnalysis }) {
       <div className="animate-fade-in-up delay-500">
         <button
           onClick={() => setLearnMoreOpen(!learnMoreOpen)}
-          className="flex items-center gap-2 text-sm text-gray-400 hover:text-gray-300 transition-colors cursor-pointer"
+          className="flex items-center gap-2 text-sm text-muted hover:text-foreground transition-colors cursor-pointer"
         >
           <ChevronDown
             className={`h-4 w-4 transition-transform duration-200 ${learnMoreOpen ? "rotate-180" : ""}`}
@@ -230,21 +229,21 @@ export function AnalysisResult({ analysis }: { analysis: ContentAnalysis }) {
           Learn more about critical thinking
         </button>
         {learnMoreOpen && (
-          <div className="mt-3 bg-gray-900/60 border border-gray-800 rounded-xl p-5 text-sm text-gray-400 leading-relaxed space-y-2">
+          <div className="mt-3 bg-stone-50 border border-border rounded-xl p-5 text-sm text-muted leading-relaxed space-y-2">
             <p>
-              <strong className="text-gray-300">Logical fallacies</strong> are
+              <strong className="text-foreground">Logical fallacies</strong> are
               errors in reasoning that undermine the logic of an argument. They
               can be intentional (to persuade) or unintentional (due to sloppy
               thinking).
             </p>
             <p>
-              <strong className="text-gray-300">Rhetorical tricks</strong> are
+              <strong className="text-foreground">Rhetorical tricks</strong> are
               persuasion techniques that appeal to emotions rather than logic.
               They&apos;re not always bad, but recognizing them helps you
               evaluate arguments more objectively.
             </p>
             <p>
-              <strong className="text-gray-300">Speaker reliability</strong>{" "}
+              <strong className="text-foreground">Speaker reliability</strong>{" "}
               considers the speaker&apos;s expertise, track record, potential
               biases, and whether they cite credible sources.
             </p>

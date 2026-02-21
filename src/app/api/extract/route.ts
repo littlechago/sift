@@ -3,6 +3,7 @@ import * as cheerio from "cheerio";
 import type { ContentExtraction } from "@/lib/types";
 
 const MAX_TEXT_LENGTH = 15_000;
+const INNERTUBE_KEY = "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8";
 
 function isYouTubeUrl(url: string): boolean {
   try {
@@ -32,55 +33,36 @@ async function extractYouTube(url: string): Promise<ContentExtraction> {
   const videoId = getYouTubeVideoId(url);
   if (!videoId) throw new Error("Could not extract YouTube video ID from URL.");
 
-  const pageRes = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
-    headers: {
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      "Accept-Language": "en-US,en;q=0.9",
+  // Use InnerTube ANDROID client to get caption URLs that work server-side
+  const playerRes = await fetch(
+    `https://www.youtube.com/youtubei/v1/player?key=${INNERTUBE_KEY}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        context: {
+          client: {
+            clientName: "ANDROID",
+            clientVersion: "19.09.37",
+            androidSdkVersion: 30,
+          },
+        },
+        videoId,
+      }),
     },
-  });
-  if (!pageRes.ok) throw new Error("Failed to fetch YouTube page.");
-  const html = await pageRes.text();
+  );
 
-  const titleMatch = html.match(/<title>([^<]+)<\/title>/);
-  const title = titleMatch
-    ? titleMatch[1].replace(" - YouTube", "").trim()
-    : "YouTube Video";
+  if (!playerRes.ok) throw new Error("Failed to fetch video data.");
+  const playerData = await playerRes.json();
 
+  const videoDetails = playerData?.videoDetails;
+  const title = videoDetails?.title || "YouTube Video";
+  const author = videoDetails?.author || undefined;
   const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
 
-  const authorMatch = html.match(/"author":"([^"]+)"/);
-  const author = authorMatch ? authorMatch[1] : undefined;
-
-  // Extract captions from ytInitialPlayerResponse
-  const playerMatch = html.match(
-    new RegExp(
-      "ytInitialPlayerResponse\\s*=\\s*(\\{.+?\\});(?:\\s*var\\s|<\\/script>)",
-      "s",
-    ),
-  );
-  if (!playerMatch) {
-    throw new Error(
-      "Could not access video data. The video may be private, age-restricted, or unavailable.",
-    );
-  }
-
-  let playerResponse: Record<string, unknown>;
-  try {
-    playerResponse = JSON.parse(playerMatch[1]);
-  } catch {
-    throw new Error("Could not parse YouTube video data.");
-  }
-
-  const captions = (playerResponse as Record<string, unknown>).captions as
-    | Record<string, unknown>
-    | undefined;
-  const renderer = captions?.playerCaptionsTracklistRenderer as
-    | Record<string, unknown>
-    | undefined;
-  const captionTracks = renderer?.captionTracks as
-    | { baseUrl: string; languageCode: string }[]
-    | undefined;
+  // Get caption tracks
+  const captionTracks = playerData?.captions?.playerCaptionsTracklistRenderer
+    ?.captionTracks as { baseUrl: string; languageCode: string }[] | undefined;
 
   if (!captionTracks || captionTracks.length === 0) {
     throw new Error(
@@ -92,27 +74,36 @@ async function extractYouTube(url: string): Promise<ContentExtraction> {
     captionTracks.find((t) => t.languageCode.startsWith("en")) ||
     captionTracks[0];
 
+  // Fetch captions XML
   const captionRes = await fetch(track.baseUrl);
   if (!captionRes.ok) throw new Error("Failed to fetch video captions.");
   const captionXml = await captionRes.text();
 
-  const textSegments = captionXml.match(/<text[^>]*>([^<]*)<\/text>/g);
-  if (!textSegments) throw new Error("Could not parse caption data.");
+  // Parse caption XML with cheerio
+  // Supports both format="3" (<p>/<s> tags) and legacy (<text> tags)
+  const xml$ = cheerio.load(captionXml, { xmlMode: true });
 
-  const text = textSegments
-    .map((seg) => {
-      const content = seg.replace(/<[^>]+>/g, "");
-      return content
-        .replace(/&amp;/g, "&")
-        .replace(/&lt;/g, "<")
-        .replace(/&gt;/g, ">")
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
-        .replace(/\n/g, " ")
-        .trim();
-    })
+  let segments: string[];
+  if (xml$("p").length > 0) {
+    // Format 3: <p> elements containing <s> word segments
+    segments = xml$("p")
+      .map((_, el) => xml$(el).text().replace(/\n/g, " ").trim())
+      .get();
+  } else {
+    // Legacy format: <text> elements
+    segments = xml$("text")
+      .map((_, el) => xml$(el).text().replace(/\n/g, " ").trim())
+      .get();
+  }
+
+  if (segments.length === 0) {
+    throw new Error("Could not parse caption data.");
+  }
+
+  const text = segments
     .filter(Boolean)
     .join(" ")
+    .replace(/\s+/g, " ")
     .slice(0, MAX_TEXT_LENGTH);
 
   return { url, title, contentType: "youtube", text, author, thumbnailUrl };
